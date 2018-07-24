@@ -18,7 +18,9 @@
 
    Email: linyihanchuan@gmail.com
    Reference:
-     https://wiki.seg.org/wiki/Relative_trace_balancing
+     1. https://wiki.seg.org/wiki/Relative_trace_balancing
+     2. A. Frank Linville and Robert A. Meek (1995). ”A procedure for optimally 
+        removing localized coherent noise.” GEOPHYSICS, 60(1), 191-203. Eq (4)-(5)
 
    Example:
    
@@ -63,13 +65,15 @@ int main(int argc, char* argv[])
     sf_floatread(&(in_traces[0][0]),nt*nx,in);
 
     for(ix=0; ix<nx; ix++){
+        // Eq (4)
         tmp = 0;
         for(it=0; it<nt; it++){
             tmp += in_traces[ix][it]*in_traces[ix][it];
         }
         tmp = sqrt(tmp/nt);
         for(it=0; it<nt; it++){
-            out_traces[ix][it] = in_traces[ix][it]/tmp;
+            // Eq (5)
+            out_traces[ix][it] = in_traces[ix][it]/tmp;   
         }
         
     }

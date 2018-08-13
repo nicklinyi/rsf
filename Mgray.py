@@ -63,8 +63,8 @@ if __name__ == "__main__":
 
     savefile = par.string("savefile")
     cmap = par.string("cmap", 'gray')
-    figx  = par.float("figx", 3.33) # Figure x size in inches
-    figy  = par.float("figy", 4)
+    figx  = par.float("figx", 3.66) # Figure x size in inches, actually 8.46 cm
+    figy  = par.float("figy", 4.4)
     dpi   = par.float("dpi", 600) # DPI
     fts   = par.float("fontsize", 8) # Font size
     ylabel = par.string("ylabel")
@@ -72,12 +72,20 @@ if __name__ == "__main__":
     cbar  = par.bool("scalebar", True) # Colorbar
     xticposition = par.string("xticposition","top")
     cbarl = par.string("barlabel") # Colorbar label
+    pclip = par.float("pclip", 100)  # Clip amplitude percentage from (0-100)
     # aspect = par.float("aspect", 3) # Font size
     aspect = (xmax-o2)/(ymax-o1)
+    # Error/bounds checking
+    if pclip < 0 or pclip > 100:
+        sf_warning("pclip must be between 0 and 100, using 100")
+        pclip = 100.0
+    pclip /= 100.0
+
+    # Normalize data
+    for i in range(n1):
+        data[:,i] /= np.max(np.abs(data[:,i]))
 
     # print((xmax-o2)/(ymax-o1))
-    
-
     mpl.rcParams['font.sans-serif'] = "Helvetica"
     # Then, "ALWAYS use sans-serif fonts"
     mpl.rcParams['font.family'] = "sans-serif"
@@ -88,12 +96,10 @@ if __name__ == "__main__":
     # ax = fig.subplots()
     # ax = fig.add_subplot(111, xlim=(o2, xmax), ylim=(ymax, o1))
     ax = fig.add_axes([0.15,0.1, 0.75, 0.75])
-    if cbar:
-        ax = fig.add_axes([0.15,0.1, 0.6, 0.6])
-        axc = fig.add_axes([0.78,0.15, 0.02, 0.5])
-        fig.add_axes(axc)
+
     
-    img = ax.imshow(np.transpose(data),cmap=cmap,aspect=aspect,extent=(o2, xmax, ymax, o1))
+    img = ax.imshow(np.transpose(data),cmap=cmap,aspect=aspect,
+            extent=(o2, xmax, ymax, o1),vmin=-pclip, vmax=pclip)
     plt.xlim(o2, xmax) 
     plt.ylim(ymax, o1)
     ax.set_xlabel(xlabel) 
@@ -101,7 +107,23 @@ if __name__ == "__main__":
     ax.xaxis.set_ticks_position(xticposition)
     ax.xaxis.set_label_position('top') 
 
+
+
+    # ax.set_xlabel(r'%s (%s)' % (l2, u2)) if u2 else ax.set_xlabel(r'%s' % l2)
+    # ax.set_ylabel(r'%s (%s)' % (l1, u1)) if u1 else ax.set_ylabel(r'%s' % l1)
+
+    # set_size(5,10)
+    # fig.tight_layout() # lead to white place at the top and bottom of the fig
+
+    if savefile:
+        # bbox_inches='tight', remove the extra padding of the output image
+        plt.savefig(savefile, dpi=dpi,bbox_inches='tight')
+        # plt.savefig(savefile, dpi=dpi)
+
     if cbar:
+        fig2 = plt.figure(figsize=(figx*0.02,figy*0.5), dpi=dpi) 
+        axc = fig2.add_axes([0.78,0.15, 0.8, 0.8])
+        fig2.add_axes(axc)
         cb = plt.colorbar(img, cax=axc)
         cb.ax.set_ylabel(cbarl) if cbarl else None
         # Align ticklabels in matplotlib colorbar
@@ -109,12 +131,7 @@ if __name__ == "__main__":
         ticklabs = cb.ax.get_yticklabels()
         cb.ax.set_yticklabels(ticklabs,ha='right')
         cb.ax.yaxis.set_tick_params(pad=25)  # your number may vary
-
-    # ax.set_xlabel(r'%s (%s)' % (l2, u2)) if u2 else ax.set_xlabel(r'%s' % l2)
-    # ax.set_ylabel(r'%s (%s)' % (l1, u1)) if u1 else ax.set_ylabel(r'%s' % l1)
-
-    # set_size(5,10)
-
-    if savefile:
-        plt.savefig(savefile, dpi=dpi)
-
+        filename = savefile.split('.')[0]
+        # print(filename)
+        savebarfile = savefile.replace(filename+'.',filename+'_bar.')
+        plt.savefig(savebarfile, dpi=dpi,bbox_inches='tight')

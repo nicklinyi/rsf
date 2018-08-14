@@ -82,8 +82,8 @@ if __name__ == "__main__":
     pclip /= 100.0
 
     # Normalize data
-    for i in range(n1):
-        data[:,i] /= np.max(np.abs(data[:,i]))
+    for i in range(n2):
+        data[i,:] /= np.max(np.abs(data[i,:]))
 
     # print((xmax-o2)/(ymax-o1))
     mpl.rcParams['font.sans-serif'] = "Helvetica"
